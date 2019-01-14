@@ -1,121 +1,135 @@
 import React, { Component } from 'react';
-import FlipMove from 'react-flip-move';
-import store from 'store2';
-import mousetrap from 'mousetrap';
 import './App.css';
-import Button from './components/Button';
 import Card from './Card';
-import { randomId, updateListElement } from './utils';
-import { initialState } from './constants';
 
 class App extends Component {
-  constructor(props) {
+  constructor(props){
     super(props);
-    this.state = { elements: [], current: 0 };
+    
+    this.state = {
+      indexNum: 5,
+      initiativeStartValue: 0,
+      hitPointStartValue: 0,
+      elements: [{ //elements is an array of keys, and pc names.
+        id: 1,
+        name: 'Player 1',
+        initiative: 20,
+        hitPoints: 41,
+      }, {
+        id: 2,
+        name: 'Player 2',
+        initiative: 17,
+        hitPoints: 42,
+      }, {
+        id: 3,
+        name: 'Player 3',
+        initiative: 13,
+        hitPoints: 43,
+      }, {
+        id: 4,
+        name: 'Player 4',
+        initiative: 8,
+        hitPoints: 44,
+      }],
+    };
+    this.updateName = this.updateName.bind(this); //bind is a way to make something avail outside the function
+    this.updateInitiative = this.updateInitiative.bind(this);
+    this.updateHitPoints = this.updateHitPoints.bind(this);
+    this.addCard = this.addCard.bind(this);
+    //this.IncrementIndex = this.IncrementIndex.bind(this);
   }
 
-  componentDidMount() {
-    const storeDate = store.get('dnd-data');
-    if (storeDate) {
-      this.setState(storeDate);
-    } else {
-      this.setState({ elements: initialState, current: 0 });
-    }
-    mousetrap.bind(['command+k', 'ctrl+k'], () => {
-      console.log('called.');
-      this.nextTurn()
-    })
-  };
+  IncrementIndex = () =>{
+    const indexNum = this.state.indexNum + 1;
+    this.setState({indexNum});
+  }
+  
+  updateName(id, e) {
+    const {value} = e.target;
+    const elements = this.state.elements;
+    const index = elements.findIndex(el => el.id === id);
+    elements[index].name = value;
+    this.setState({elements}); //This is how we make a change to the array
+  }
 
-  componentWillUnmount() {
-    mousetrap.unbind('command+k');
-    mousetrap.unbind('ctrl+k');
-  };
+  updateInitiative(id, e) {
+    clearTimeout(this.timeout_);//Figure out how to change after leave input.
+    const {value} = e.target;
+    const elements = this.state.elements;
+    const index = elements.findIndex(el => el.id === id);
+    elements[index].initiative = Number(value);
+    this.setState({elements}); //This is how we make a change to the array
+    this.timeout_ = setTimeout (() => this.sortElements(), 500);
+  }
 
-  nextTurn = () => {
-    const { elements, current } = this.state;
-    const val = current === elements.length - 1 ? 0 : current + 1;
-    this.setState({ current: val });
-    this.syncStateWithLocalStore();
-  };
+  updateHitPoints(id, e) {
+    const {value} = e.target;
+    const elements = this.state.elements;
+    const index = elements.findIndex(el => el.id === id);
+    elements[index].hitPoints = Number(value);
+    this.setState({elements}); //This is how we make a change to the array    
+  }
 
-  syncStateWithLocalStore = () => {
-    store.set('dnd-data', this.state);
-  };
+  updateInitiStartValue(e) {
+    const {value} = e.target;
+    const initiativeStartValue = Number(value);
+    this.setState({initiativeStartValue});
+  }
 
-  updateField = (id, e, field) => {
-    const { value } = e.target;
-    this.setState({
-      elements: updateListElement(this.state.elements, id, field, value)
-    });
-    this.syncStateWithLocalStore();
-  };
+  updateHitPointStartValue(e) {
+    const {value} = e.target;
+    const hitPointStartValue = Number(value);
+    this.setState({hitPointStartValue});
+  }
 
-  updateInitiative = (id, e) => {
-    clearTimeout(this.timeout_);
-    this.updateField(id, e, 'initiative');
-    this.timeout_ = setTimeout(() => this.sortElements(), 500);
-    this.syncStateWithLocalStore();
-  };
+  resetCharacterInputs(){
+    const initiativeStartValue = 0;
+    this.setState({initiativeStartValue});
+    const hitPointStartValue = 0;
+    this.setState({hitPointStartValue});
+  }
 
-  sortElements = () => {
+  sortElements(){
     const { elements } = this.state;
     this.setState({
-      elements: elements.sort((l, r) => r.initiative - l.initiative)
-    });
-    this.syncStateWithLocalStore();
-  };
+      elements: elements.sort((a,b) => b.initiative - a.initiative)
+    });    
+  }
 
-  addCard = () => {
+  addCard(){
+    this.IncrementIndex(); //??why does this not happen before the rest of the code. I would expect player 5 to be 6 right now??
     const { elements } = this.state;
     elements[elements.length] = {
-      id: randomId(),
-      name: `Player ${elements.length + 1}`,
-      initiative: -100,
-      hitpoints: 12,
+      id: this.state.indexNum,
+      name: 'Player '+ (elements.length+1),
+      initiative: this.state.initiativeStartValue, //Figure out how to give a value and it will roll a d20 then sort.
+      hitPoints: this.state.hitPointStartValue,
     };
-    this.setState({
-      elements: elements.sort((l, r) => r.initiative - l.initiative)
-    });
-    this.syncStateWithLocalStore();
-  };
-
-  removeElement = (id) => {
-    let { elements } = this.state;
-    elements = elements.filter(el => el.id !== id);
-    this.setState({ elements });
-    this.syncStateWithLocalStore();
-  };
+    this.sortElements();
+    this.resetCharacterInputs();
+  }
 
   render() {
-    const { elements, current } = this.state;
-    return (
-      <div>
-        <div className="header">
-          <Button
-            onClick={this.addCard}
-            label="Add New Card"
-            bold
+    const {elements}=this.state;
+    return ( //Create card and display.
+      <div> 
+        <label>  Initiative Value:</label>
+        <input type="number" value={this.state.initiativeStartValue} onChange ={e => this.updateInitiStartValue(e)} /><br/>
+        <label>  Hit Points:</label>
+        <input type="number" value={this.state.hitPointStartValue} onChange ={e => this.updateHitPointStartValue(e)} /><br/>
+        <button onClick={this.addCard}> Add </button>
+        {elements.map(element =>
+          <Card
+            key={element.id}
+            name={element.name}
+            initiative={element.initiative}
+            hitPoints={element.hitPoints}
+            id={element.id}
+            onNameChange={this.updateName}
+            onInitiativeChange={this.updateInitiative}
+            onHitPointsChange={this.updateHitPoints}
           />
-        </div>
-        <FlipMove
-          duration={240}
-          delay={0}
-          staggerDurationBy={260}
-          staggerDelayBy={0}
-          easing="cubic-bezier(0.13, 1.15, 0.8, 1.5)"
-        >
-          {elements.map((element, index) =>
-            <Card
-              key={element.id}
-              element={element}
-              onUpdateField={this.updateField}
-              onInitiativeChange={this.updateInitiative}
-              onRemove={this.removeElement}
-              isCurrent={index === current}
-            />
-          )}
-        </FlipMove>
+        )}
       </div>
     );
   }
