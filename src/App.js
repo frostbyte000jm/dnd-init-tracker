@@ -2,12 +2,15 @@ import React, { Component } from 'react';
 import './App.css';
 import Card from './Card';
 
+//Global Variables
+var indexNum = 5;
+
 class App extends Component {
   constructor(props){
     super(props);
-    
+
     this.state = {
-      indexNum: 5,
+      //indexNum: 5,
       initiativeStartValue: 0,
       hitPointStartValue: 0,
       elements: [{ //elements is an array of keys, and pc names.
@@ -36,12 +39,13 @@ class App extends Component {
     this.updateInitiative = this.updateInitiative.bind(this);
     this.updateHitPoints = this.updateHitPoints.bind(this);
     this.addCard = this.addCard.bind(this);
-    //this.IncrementIndex = this.IncrementIndex.bind(this);
   }
 
   IncrementIndex = () =>{
-    const indexNum = this.state.indexNum + 1;
-    this.setState({indexNum});
+    console.log("IncrementIndex() Start",indexNum)
+    indexNum = (indexNum + 1);
+    //this.setState({indexNum2});
+    console.log("IncrementIndex() End",indexNum)
   }
   
   updateName(id, e) {
@@ -97,16 +101,19 @@ class App extends Component {
   }
 
   addCard(){
+    console.log("addCard() Start",indexNum)
     this.IncrementIndex(); //??why does this not happen before the rest of the code. I would expect player 5 to be 6 right now??
+    console.log("addCard() after IncrementIndex()",indexNum)
     const { elements } = this.state;
     elements[elements.length] = {
-      id: this.state.indexNum,
+      id: indexNum,
       name: 'Player '+ (elements.length+1),
       initiative: this.state.initiativeStartValue, //Figure out how to give a value and it will roll a d20 then sort.
       hitPoints: this.state.hitPointStartValue,
     };
     this.sortElements();
     this.resetCharacterInputs();
+    console.log("addCard() End",indexNum)
   }
 
   render() {
