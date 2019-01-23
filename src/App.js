@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 import './App.css';
 import Card from './Card';
+import {initialState} from './constants';
 
 //Global Variables
 var indexNum = 5;
@@ -13,27 +14,7 @@ class App extends Component {
       //indexNum: 5,
       initiativeStartValue: 0,
       hitPointStartValue: 0,
-      elements: [{ //elements is an array of keys, and pc names.
-        id: 1,
-        name: 'Player 1',
-        initiative: 20,
-        hitPoints: 41,
-      }, {
-        id: 2,
-        name: 'Player 2',
-        initiative: 17,
-        hitPoints: 42,
-      }, {
-        id: 3,
-        name: 'Player 3',
-        initiative: 13,
-        hitPoints: 43,
-      }, {
-        id: 4,
-        name: 'Player 4',
-        initiative: 8,
-        hitPoints: 44,
-      }],
+      elements: initialState,
     };
     this.updateName = this.updateName.bind(this); //bind is a way to make something avail outside the function
     this.updateInitiative = this.updateInitiative.bind(this);
@@ -98,6 +79,14 @@ class App extends Component {
     this.setState({
       elements: elements.sort((a,b) => b.initiative - a.initiative)
     });    
+  }
+
+  removeElement(id){//Left off here.
+    const { elements } = this.state;
+
+    this.setState({
+      elements: elements.sort((a,b) => b.initiative - a.initiative)
+    }); 
   }
 
   addCard(){
